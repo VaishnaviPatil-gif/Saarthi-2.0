@@ -813,6 +813,16 @@
                             <button id="play-calm-game" class="px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 transition">Play Today's Calm Game</button>
                             <button id="choose-game" class="px-4 py-2 rounded-full bg-amber-600 text-white text-sm font-semibold shadow hover:bg-amber-700 transition">Choose a Game</button>
                         </div>
+                        <script>
+                            document.getElementById('choose-game').addEventListener('click', function() {
+                                const gamesSection = document.getElementById('games-play');
+                                if (gamesSection) {
+                                    document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
+                                    gamesSection.classList.remove('hidden');
+                                    console.log('Games section shown!');
+                                }
+                            });
+                        </script>
                         <!-- Game opens in full screen section below -->
                     </div>
                 </div>
@@ -1004,16 +1014,16 @@
                     <h2 class="text-xl md:text-2xl font-bold">🎮 Mini Games</h2>
                     <p class="text-[11px] md:text-xs font-medium tracking-wide text-white/85 mt-0.5">Pick a game to reset, focus, or lift your mood.</p>
                 </div>
-                <button data-target="dashboard" class="px-3 py-1 rounded-full bg-white/20 text-white hover:bg-white/30" onclick="try{showSection('dashboard')}catch{}">Back</button>
+                <button data-target="dashboard" class="px-3 py-1 rounded-full bg-white/20 text-white hover:bg-white/30" onclick="try{window.showSection('dashboard')}catch{}">Back</button>
             </div>
             <div class="p-4 md:p-6">
                 <div class="max-w-5xl mx-auto">
                     <!-- Tabs -->
                     <div class="flex flex-wrap items-center gap-2 mb-4">
-                        <button class="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50" data-game-tab="tab-bubble">Bubble Calm</button>
-                        <button class="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50" data-game-tab="tab-memory">Mind Reset</button>
-                        <button class="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50" data-game-tab="tab-beats">Mood Beats Tap</button>
-                        <button class="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50" data-game-tab="tab-gratitude">Gratitude Pop</button>
+                        <button class="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50" data-game-tab="tab-bubble" onclick="document.querySelectorAll('[data-game-panel]').forEach(p=>p.classList.add('hidden')); document.getElementById('tab-bubble').classList.remove('hidden');">Bubble Calm</button>
+                        <button class="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50" data-game-tab="tab-memory" onclick="document.querySelectorAll('[data-game-panel]').forEach(p=>p.classList.add('hidden')); document.getElementById('tab-memory').classList.remove('hidden');">Mind Reset</button>
+                        <button class="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50" data-game-tab="tab-beats" onclick="document.querySelectorAll('[data-game-panel]').forEach(p=>p.classList.add('hidden')); document.getElementById('tab-beats').classList.remove('hidden');">Mood Beats Tap</button>
+                        <button class="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50" data-game-tab="tab-gratitude" onclick="document.querySelectorAll('[data-game-panel]').forEach(p=>p.classList.add('hidden')); document.getElementById('tab-gratitude').classList.remove('hidden');">Gratitude Pop</button>
                     </div>
 
                     <!-- Panels -->
@@ -1131,7 +1141,7 @@
                     <h2 class="text-xl md:text-2xl font-bold">🌬️ Daily Calm Game</h2>
                     <p class="text-[11px] md:text-xs font-medium tracking-wide text-white/85 mt-0.5">You're right – burst the bubbles and reduce your stress.</p>
                 </div>
-                <button data-target="dashboard" class="px-3 py-1 rounded-full bg-white/20 text-white hover:bg-white/30" onclick="try{showSection('dashboard')}catch{}">Back</button>
+                <button data-target="dashboard" class="px-3 py-1 rounded-full bg-white/20 text-white hover:bg-white/30" onclick="try{window.showSection('dashboard')}catch{}">Back</button>
             </div>
             <div class="p-4 md:p-6">
                 <div class="max-w-5xl mx-auto">
@@ -1697,21 +1707,32 @@
         }
 
         // --- UI & Navigation Logic ---
-        const sections = document.querySelectorAll('.section-content');
-        const navLinks = document.querySelectorAll('nav a');
-        
-        function showSection(sectionId) {
-            sections.forEach(section => section.classList.add('hidden'));
-            document.getElementById(sectionId).classList.remove('hidden');
+        function initializeNavigation() {
+            const sections = document.querySelectorAll('.section-content');
+            const navLinks = document.querySelectorAll('nav a');
+            
+            window.showSection = function(sectionId) {
+                sections.forEach(section => section.classList.add('hidden'));
+                const targetSection = document.getElementById(sectionId);
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
+                    console.log('Section shown:', sectionId);
+                } else {
+                    console.error('Section not found:', sectionId);
+                }
+            };
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sectionId = e.target.getAttribute('href').substring(1);
+                    window.showSection(sectionId);
+                });
+            });
         }
 
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const sectionId = e.target.getAttribute('href').substring(1);
-                showSection(sectionId);
-            });
-        });
+        // Initialize immediately - MUST be before any showSection calls
+        initializeNavigation();
 
         // --- Resources Tabbed Panels ---
         function initResourceTabs(){
@@ -1729,7 +1750,8 @@
             };
 
             buttons.forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
                     const targetId = btn.getAttribute('data-resource-tab');
                     const target = document.getElementById(targetId);
                     if (!target) return;
@@ -1739,9 +1761,20 @@
                     btn.setAttribute('aria-selected','true');
                     target.classList.remove('hidden');
                     // smooth scroll to the panel if off-screen
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setTimeout(() => {
+                        try { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+                    }, 0);
                 });
             });
+
+            // Activate first tab by default
+            if (buttons.length > 0) {
+                const firstId = buttons[0].getAttribute('data-resource-tab');
+                const firstPanel = document.getElementById(firstId);
+                if (firstPanel) {
+                    buttons[0].click();
+                }
+            }
         }
 
         // Initialize tabs when DOM is ready
@@ -1762,7 +1795,7 @@
                     const targetEl = document.getElementById(targetId);
                     if (!targetEl) return; // allow normal behavior if not found
                     e.preventDefault();
-                    showSection(targetId);
+                    window.showSection(targetId);
                     // Smooth scroll & temporary highlight for orientation
                     setTimeout(() => {
                         try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
@@ -1921,7 +1954,7 @@
                 document.getElementById('user-id').textContent = `User ID: ${userId}`;
                 authBtn.textContent = 'Logout (Local)';
                 
-                showSection('dashboard');
+                window.showSection('dashboard');
                 wireDashboardShortcuts(); // enable quick action deep-links after initial render
                 setupLocalListeners();
             } catch (error) {
@@ -2527,42 +2560,45 @@
                 }
             })();
 
-            // Quick prompt buttons
-            document.querySelectorAll('.quick-prompt').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    chatInput.value = btn.getAttribute('data-prompt') || '';
-                    chatInput.focus();
+            // Chat bindings (skip gracefully if chat UI is not present)
+            if (chatBox && chatInput) {
+                // Quick prompt buttons
+                document.querySelectorAll('.quick-prompt').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        chatInput.value = btn.getAttribute('data-prompt') || '';
+                        chatInput.focus();
+                    });
                 });
-            });
-            // Clear chat
-            const clearBtn = document.getElementById('clear-chat');
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    chatBox.innerHTML = '<div class="chat-message ai-message shadow-md"><p>Chat cleared. How can I support you now?</p></div>';
-                    localStorage.removeItem('saarthiChatHistory');
-                });
-            }
-            // Persist messages
-            const persistKey = 'saarthiChatHistory';
-            function saveHistory() {
-                const msgs = Array.from(chatBox.querySelectorAll('.chat-message')).map(m => {
-                    return {
-                        sender: m.classList.contains('user-message') ? 'user' : 'ai',
-                        text: m.textContent.trim()
-                    };
-                });
-                localStorage.setItem(persistKey, JSON.stringify(msgs));
-            }
-            const observer = new MutationObserver(saveHistory);
-            observer.observe(chatBox, { childList: true });
-            // Restore history
-            try {
-                const stored = JSON.parse(localStorage.getItem(persistKey) || '[]');
-                if (stored.length > 0) {
-                    chatBox.innerHTML = '';
-                    stored.forEach(msg => addChatMessage(msg.text, msg.sender));
+                // Clear chat
+                const clearBtn = document.getElementById('clear-chat');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        chatBox.innerHTML = '<div class="chat-message ai-message shadow-md"><p>Chat cleared. How can I support you now?</p></div>';
+                        localStorage.removeItem('saarthiChatHistory');
+                    });
                 }
-            } catch {}
+                // Persist messages
+                const persistKey = 'saarthiChatHistory';
+                function saveHistory() {
+                    const msgs = Array.from(chatBox.querySelectorAll('.chat-message')).map(m => {
+                        return {
+                            sender: m.classList.contains('user-message') ? 'user' : 'ai',
+                            text: m.textContent.trim()
+                        };
+                    });
+                    localStorage.setItem(persistKey, JSON.stringify(msgs));
+                }
+                const observer = new MutationObserver(saveHistory);
+                observer.observe(chatBox, { childList: true });
+                // Restore history
+                try {
+                    const stored = JSON.parse(localStorage.getItem(persistKey) || '[]');
+                    if (stored.length > 0) {
+                        chatBox.innerHTML = '';
+                        stored.forEach(msg => addChatMessage(msg.text, msg.sender));
+                    }
+                } catch {}
+            }
             // Server status indicator with auto-reconnect
             const serverStatus = document.getElementById('server-status');
             let serverCheckInterval = null;
@@ -2623,12 +2659,14 @@
                 });
             }
 
-            sendBtn.addEventListener('click', handleChatSend);
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    handleChatSend();
-                }
-            });
+            if (sendBtn && chatInput) {
+                sendBtn.addEventListener('click', handleChatSend);
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        handleChatSend();
+                    }
+                });
+            }
 
             // --- Journal Logic ---
             saveJournalBtn.addEventListener('click', () => {
@@ -2716,7 +2754,7 @@
             const chooseGameBtn = document.getElementById('choose-game');
             if (chooseGameBtn) {
                 chooseGameBtn.addEventListener('click', () => {
-                    showSection('games-play');
+                    window.showSection('games-play');
                     // show a sensible default tab
                     const defaultTab = document.querySelector('[data-game-tab="tab-memory"]');
                     if (defaultTab) setTimeout(()=> defaultTab.click(), 0);
@@ -2732,35 +2770,49 @@
                     if (el) el.classList.remove('hidden');
                     // ensure canvases render with correct size after becoming visible
                     if (id === 'tab-beats'){
-                        const c = document.getElementById('beats-canvas');
-                        if (c){ c.width = c.clientWidth; c.height = c.clientHeight; }
+                        setTimeout(() => {
+                            const c = document.getElementById('beats-canvas');
+                            if (c && c.parentElement && c.parentElement.offsetParent !== null){ 
+                                c.width = c.clientWidth; 
+                                c.height = c.clientHeight; 
+                            }
+                        }, 50);
                     }
                     if (id === 'tab-gratitude'){
-                        const c1 = document.getElementById('grat-canvas');
-                        if (c1){ c1.width = c1.clientWidth; c1.height = c1.clientHeight; }
-                        // also refresh card to a clean state
-                        const card = document.getElementById('grat-card');
-                        if (card){
-                            const g = card.getContext('2d');
-                            g.clearRect(0,0,card.width,card.height);
-                            const grad = g.createLinearGradient(0,0,card.width,card.height);
-                            grad.addColorStop(0,'#eefbf8'); grad.addColorStop(1,'#fff7ec');
-                            g.fillStyle = grad; g.fillRect(0,0,card.width,card.height);
-                            g.fillStyle = '#153e47'; g.font = 'bold 26px Inter, sans-serif'; g.fillText('My Gratitude Card', 24, 44);
-                        }
+                        setTimeout(() => {
+                            const c1 = document.getElementById('grat-canvas');
+                            if (c1 && c1.parentElement && c1.parentElement.offsetParent !== null){ 
+                                c1.width = c1.clientWidth; 
+                                c1.height = c1.clientHeight; 
+                            }
+                            // also refresh card to a clean state
+                            const card = document.getElementById('grat-card');
+                            if (card && card.offsetParent !== null){
+                                const g = card.getContext('2d');
+                                g.clearRect(0,0,card.width,card.height);
+                                const grad = g.createLinearGradient(0,0,card.width,card.height);
+                                grad.addColorStop(0,'#eefbf8'); grad.addColorStop(1,'#fff7ec');
+                                g.fillStyle = grad; g.fillRect(0,0,card.width,card.height);
+                                g.fillStyle = '#153e47'; g.font = 'bold 26px Inter, sans-serif'; g.fillText('My Gratitude Card', 24, 44);
+                            }
+                        }, 50);
                     }
                 }
                 tabs.forEach(t=>{
-                    t.addEventListener('click', ()=>{
+                    t.addEventListener('click', (e) => {
+                        e.preventDefault();
                         const id = t.getAttribute('data-game-tab');
                         showPanel(id);
                     });
                 });
                 const openDaily = document.getElementById('open-daily-calm');
-                if (openDaily) openDaily.addEventListener('click', ()=> showSection('calm-play'));
+                if (openDaily) openDaily.addEventListener('click', ()=> window.showSection('calm-play'));
                 // Show default panel on load
                 const first = document.querySelector('[data-game-tab]');
-                if (first) first.click();
+                if (first) {
+                    const id = first.getAttribute('data-game-tab');
+                    showPanel(id);
+                }
             })();
 
             // ---- Mind Reset (Memory Flash) ----
@@ -3341,10 +3393,19 @@
                         });
                     });
 
-                    // Add navigation button handlers
+                    // Add navigation button handlers with proper this binding
                     this.elements.nextButton.addEventListener('click', () => this.nextQuestion());
                     this.elements.prevButton.addEventListener('click', () => this.previousQuestion());
-                    this.elements.closeButton.addEventListener('click', () => this.closeAssessment());
+                    this.elements.closeButton.addEventListener('click', () => {
+                        this.currentAssessment = null;
+                        this.currentQuestionIndex = 0;
+                        this.userAnswers = [];
+                        document.getElementById('assessment-content').classList.add('hidden');
+                        document.getElementById('results-area').classList.add('hidden');
+                        document.querySelectorAll('.bg-white.rounded-2xl.shadow-lg').forEach(card => {
+                            card.classList.remove('hidden');
+                        });
+                    });
 
                     console.log('Assessment Manager initialized successfully');
                 }
@@ -3399,24 +3460,6 @@
                     console.log('Assessment started:', type);
                 }
             
-                closeAssessment() {
-                    // Hide assessment content
-                    document.getElementById('assessment-content').classList.add('hidden');
-                    document.getElementById('results-area').classList.add('hidden');
-            
-                    // Show assessment cards
-                    document.querySelectorAll('.bg-white.rounded-2xl').forEach(card => {
-                        if (!card.classList.contains('shadow-lg')) {
-                            card.classList.remove('hidden');
-                        }
-                    });
-            
-                    // Reset state
-                    this.currentAssessment = null;
-                    this.currentQuestionIndex = 0;
-                    this.userAnswers = [];
-                }
-            
                 displayQuestion() {
                     const currentAssessmentData = assessmentData[this.currentAssessment];
                     const questions = currentAssessmentData.questions;
@@ -3435,39 +3478,19 @@
                     
                     question.options.forEach((option, index) => {
                         const button = document.createElement('button');
+                        button.type = 'button';
                         button.className = 'w-full p-4 text-left rounded-lg border transition-colors duration-300 ' +
                             (this.userAnswers[this.currentQuestionIndex] === index 
                                 ? 'border-indigo-500 bg-indigo-50' 
                                 : 'border-gray-200 hover:border-indigo-500');
                         button.textContent = option;
-                        button.onclick = () => this.selectOption(index);
+                        button.addEventListener('click', () => this.selectOption(index));
                         this.elements.optionsArea.appendChild(button);
                     });
             
                     // Update navigation buttons
                     this.elements.prevButton.style.visibility = this.currentQuestionIndex === 0 ? 'hidden' : 'visible';
                     this.elements.nextButton.textContent = this.currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next';
-            
-                    // Create options
-                    const optionsArea = document.getElementById('options-area');
-                    optionsArea.innerHTML = '';
-                    
-                    question.options.forEach((option, index) => {
-                        const button = document.createElement('button');
-                        button.className = 'w-full p-4 text-left rounded-lg border border-gray-200 hover:border-indigo-500 transition-colors duration-300';
-                        if (this.userAnswers[this.currentQuestionIndex] === index) {
-                            button.classList.add('border-indigo-500', 'bg-indigo-50');
-                        }
-                        button.textContent = option;
-                        button.addEventListener('click', () => this.selectOption(index));
-                        optionsArea.appendChild(button);
-                    });
-            
-                    // Update navigation buttons
-                    document.getElementById('prev-question').style.visibility = 
-                        this.currentQuestionIndex === 0 ? 'hidden' : 'visible';
-                    document.getElementById('next-question').textContent = 
-                        this.currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next';
                 }
             
                 selectOption(index) {
@@ -3655,5 +3678,3 @@
     </script>
 </body>
 </html>
-
-
